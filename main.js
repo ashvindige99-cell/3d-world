@@ -30,16 +30,19 @@ const neonLight = new THREE.PointLight(0x00ffff, 2, 50);
 neonLight.position.set(5, 5, 5);
 scene.add(neonLight);
 
+const hemiLight = new THREE.HemisphereLight(0x00ffff, 0xff00ff, 0.6);
+scene.add(hemiLight);
+
 // REFLECTIVE FLOOR (REAL GLOSS)
 const floorGeo = new THREE.PlaneGeometry(200, 200);
 
-const floor = new Reflector(floorGeo, {
-  clipBias: 0.003,
-  textureWidth: 1024,
-  textureHeight: 1024,
-  color: 0x111111
+const floorMat = new THREE.MeshStandardMaterial({
+  color: 0x050505,
+  metalness: 1,
+  roughness: 0.1,
 });
 
+const floor = new THREE.Mesh(floorGeo, floorMat);
 floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
 
