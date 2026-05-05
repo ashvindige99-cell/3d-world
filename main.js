@@ -1,5 +1,6 @@
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 import { PointerLockControls } from "https://unpkg.com/three@0.160.0/examples/jsm/controls/PointerLockControls.js?module";
+import { Reflector } from "https://unpkg.com/three@0.160.0/examples/jsm/objects/Reflector.js?module";
 
 // SCENE
 let scene = new THREE.Scene();
@@ -18,6 +19,7 @@ camera.position.y = 1.6;
 let renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
 // LIGHTS
@@ -28,14 +30,16 @@ const neonLight = new THREE.PointLight(0x00ffff, 2, 50);
 neonLight.position.set(5, 5, 5);
 scene.add(neonLight);
 
-// FLOOR
+// REFLECTIVE FLOOR (REAL GLOSS)
 const floorGeo = new THREE.PlaneGeometry(200, 200);
-const floorMat = new THREE.MeshStandardMaterial({
-  color: 0x111111,
-  metalness: 0.8,
-  roughness: 0.2,
+
+const floor = new Reflector(floorGeo, {
+  clipBias: 0.003,
+  textureWidth: 1024,
+  textureHeight: 1024,
+  color: 0x111111
 });
-const floor = new THREE.Mesh(floorGeo, floorMat);
+
 floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
 
@@ -60,7 +64,7 @@ controls.addEventListener("unlock", () => {
   overlay.style.display = "flex";
 });
 
-// BACKUP CLICK (important)
+// BACKUP CLICK
 window.addEventListener("click", () => {
   if (!controls.isLocked) {
     controls.lock();
@@ -104,7 +108,7 @@ function createScreen(x, z, img) {
   scene.add(mesh);
 }
 
-// SCREENS (use correct paths)
+// SCREENS
 createScreen(0, -10, "assets/images/screen1.jpg");
 createScreen(10, -20, "assets/images/screen2.jpg");
 createScreen(-10, -20, "assets/images/screen3.jpg");
@@ -116,8 +120,9 @@ function animate() {
   velocity.x = 0;
   velocity.z = 0;
 
-  if (moveForward) velocity.z -= speed;
-  if (moveBackward) velocity.z += speed;
+  // ✅ FIXED MOVEMENT
+  if (moveForward) velocity.z += speed;
+  if (moveBackward) velocity.z -= speed;
   if (moveLeft) velocity.x -= speed;
   if (moveRight) velocity.x += speed;
 
