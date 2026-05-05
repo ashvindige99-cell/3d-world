@@ -1,19 +1,26 @@
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160/build/three.module.js";
-import { PointerLockControls } from "https://cdn.jsdelivr.net/npm/three@0.160/examples/jsm/controls/PointerLockControls.js";
+import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+import { PointerLockControls } from "https://unpkg.com/three@0.160.0/examples/jsm/controls/PointerLockControls.js?module";
 
+// SCENE
 let scene = new THREE.Scene();
 scene.fog = new THREE.Fog(0x000000, 10, 80);
 
-let camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+// CAMERA
+let camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
 camera.position.y = 1.6;
 
+// RENDERER
 let renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 document.body.appendChild(renderer.domElement);
 
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-// LIGHTS (cyberpunk feel)
+// LIGHTS
 const ambient = new THREE.AmbientLight(0xff00ff, 0.4);
 scene.add(ambient);
 
@@ -21,35 +28,46 @@ const neonLight = new THREE.PointLight(0x00ffff, 2, 50);
 neonLight.position.set(5, 5, 5);
 scene.add(neonLight);
 
-// FLOOR (fake reflective)
+// FLOOR
 const floorGeo = new THREE.PlaneGeometry(200, 200);
 const floorMat = new THREE.MeshStandardMaterial({
   color: 0x111111,
   metalness: 0.8,
-  roughness: 0.2
+  roughness: 0.2,
 });
 const floor = new THREE.Mesh(floorGeo, floorMat);
 floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
 
-// PLAYER CONTROLS
+// CONTROLS
 const controls = new PointerLockControls(camera, document.body);
+scene.add(controls.getObject());
 
-document.getElementById("overlay").onclick = () => {
+const overlay = document.getElementById("overlay");
+
+// CLICK TO START
+overlay.addEventListener("click", (e) => {
+  e.preventDefault();
   controls.lock();
-};
+});
 
+// LOCK EVENTS
 controls.addEventListener("lock", () => {
-  document.getElementById("overlay").style.display = "none";
+  overlay.style.display = "none";
 });
 
 controls.addEventListener("unlock", () => {
-  document.getElementById("overlay").style.display = "flex";
+  overlay.style.display = "flex";
 });
 
-scene.add(controls.getObject());
+// BACKUP CLICK (important)
+window.addEventListener("click", () => {
+  if (!controls.isLocked) {
+    controls.lock();
+  }
+});
 
-// MOVEMENT
+// MOVEMENT FLAGS
 let moveForward = false;
 let moveBackward = false;
 let moveLeft = false;
@@ -58,6 +76,7 @@ let moveRight = false;
 const velocity = new THREE.Vector3();
 const speed = 0.1;
 
+// KEY INPUT
 document.addEventListener("keydown", (e) => {
   if (e.code === "KeyW") moveForward = true;
   if (e.code === "KeyS") moveBackward = true;
@@ -72,7 +91,7 @@ document.addEventListener("keyup", (e) => {
   if (e.code === "KeyD") moveRight = false;
 });
 
-// LOAD TEXTURE SCREENS
+// TEXTURES
 const loader = new THREE.TextureLoader();
 
 function createScreen(x, z, img) {
@@ -85,12 +104,12 @@ function createScreen(x, z, img) {
   scene.add(mesh);
 }
 
-// ADD SCREENS
-createScreen(0, -10, "./assets/images/screen1.jpg");
-createScreen(10, -20, "./assets/images/screen2.jpg");
-createScreen(-10, -20, "./assets/images/screen3.jpg");
+// SCREENS (use correct paths)
+createScreen(0, -10, "assets/images/screen1.jpg");
+createScreen(10, -20, "assets/images/screen2.jpg");
+createScreen(-10, -20, "assets/images/screen3.jpg");
 
-// ANIMATE
+// ANIMATION LOOP
 function animate() {
   requestAnimationFrame(animate);
 
